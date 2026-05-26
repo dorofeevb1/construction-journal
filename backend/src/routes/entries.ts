@@ -1,23 +1,24 @@
 import { Router, type Request, type Response } from 'express';
-import { Prisma } from '@prisma/client';
 import { prisma } from '../prisma';
 import { entryBodySchema, type EntryBody } from '../validation/entry';
 
 export const entriesRouter = Router();
+
+type EntryWithWorkType = {
+  id: number;
+  workDate: Date;
+  volume: unknown;
+  unit: string;
+  workerName: string;
+  workType: { id: number; name: string };
+};
 
 // дата приходит строкой YYYY-MM-DD — кладём в UTC, для колонки DATE хватает
 function toWorkDate(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`);
 }
 
-function toJson(row: {
-  id: number;
-  workDate: Date;
-  volume: Prisma.Decimal;
-  unit: string;
-  workerName: string;
-  workType: { id: number; name: string };
-}) {
+function toJson(row: EntryWithWorkType) {
   return {
     id: row.id,
     workDate: row.workDate.toISOString().slice(0, 10),
@@ -57,7 +58,7 @@ entriesRouter.get('/', async (req, res, next) => {
     const dateTo = typeof req.query.dateTo === 'string' ? req.query.dateTo : undefined;
     const sort = req.query.sort === 'asc' ? 'asc' : 'desc';
 
-    const where: Prisma.JournalEntryWhereInput = {};
+    const where: { workDate?: { gte?: Date; lte?: Date } } = {};
     if (dateFrom || dateTo) {
       where.workDate = {};
       if (dateFrom) where.workDate.gte = toWorkDate(dateFrom);
