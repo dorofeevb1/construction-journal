@@ -45,9 +45,29 @@ test.describe('журнал работ', () => {
     await page.getByTestId('submit-entry').click();
     await expect(page.getByTestId('entries-table')).toContainText(patched);
 
-    page.once('dialog', (d) => d.accept());
     await page.locator('[data-testid="entry-row"]', { hasText: patched }).getByTestId('delete-entry').click();
+    await expect(page.getByTestId('confirm-modal')).toBeVisible();
+    await page.getByTestId('confirm-ok').click();
     await expect(page.getByTestId('entries-table')).not.toContainText(patched);
+  });
+
+  test('поиск по исполнителю', async ({ page }) => {
+    const unique = `ПоискТест ${Date.now()}`;
+    await page.getByTestId('field-work-date').fill('2026-05-22');
+    await page.getByTestId('field-work-type').selectOption({ index: 1 });
+    await page.getByTestId('field-volume').fill('1');
+    await page.getByTestId('field-unit').selectOption('шт.');
+    await page.getByTestId('field-worker').fill(unique);
+    await page.getByTestId('submit-entry').click();
+    await expect(page.getByTestId('entries-table')).toContainText(unique);
+
+    await page.getByTestId('filter-search').fill(unique);
+    await page.getByTestId('filter-apply').click();
+    await expect(page.getByTestId('entries-table')).toContainText(unique);
+
+    await page.getByTestId('filter-search').fill('неттакогоисполнителя123');
+    await page.getByTestId('filter-apply').click();
+    await expect(page.getByTestId('entries-table')).not.toContainText(unique);
   });
 
   test('валидация пустой формы', async ({ page }) => {

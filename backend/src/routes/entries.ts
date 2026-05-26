@@ -57,13 +57,27 @@ entriesRouter.get('/', async (req, res, next) => {
     const dateFrom = typeof req.query.dateFrom === 'string' ? req.query.dateFrom : undefined;
     const dateTo = typeof req.query.dateTo === 'string' ? req.query.dateTo : undefined;
     const sort = req.query.sort === 'asc' ? 'asc' : 'desc';
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
 
-    const where: { workDate?: { gte?: Date; lte?: Date } } = {};
+    const and: Record<string, unknown>[] = [];
+
     if (dateFrom || dateTo) {
-      where.workDate = {};
-      if (dateFrom) where.workDate.gte = toWorkDate(dateFrom);
-      if (dateTo) where.workDate.lte = toWorkDate(dateTo);
+      const workDate: { gte?: Date; lte?: Date } = {};
+      if (dateFrom) workDate.gte = toWorkDate(dateFrom);
+      if (dateTo) workDate.lte = toWorkDate(dateTo);
+      and.push({ workDate });
     }
+
+    if (q) {
+      and.push({
+        OR: [
+          { workerName: { contains: q, mode: 'insensitive' } },
+          { workType: { name: { contains: q, mode: 'insensitive' } } },
+        ],
+      });
+    }
+
+    const where = and.length === 0 ? {} : and.length === 1 ? and[0] : { AND: and };
 
     const rows = await prisma.journalEntry.findMany({
       where,

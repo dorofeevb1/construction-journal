@@ -134,6 +134,11 @@ body {
   min-width: 150px;
 }
 
+.filters-row .field-search {
+  min-width: 200px;
+  flex: 1 1 220px;
+}
+
 .btn {
   min-height: 2.75rem;
   padding: 0.45rem 0.9rem;
@@ -249,6 +254,49 @@ th {
   font-size: 0.75rem;
   color: var(--muted);
   text-align: center;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(44, 42, 38, 0.45);
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
+}
+
+.modal h2 {
+  margin: 0 0 0.65rem;
+  font-size: 1.1rem;
+}
+
+.modal-text {
+  margin: 0 0 1rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.btn-danger-solid {
+  background: var(--danger);
+}
+
+.btn-danger-solid:hover {
+  background: #991b1b;
 }
 
 @media (max-width: 560px) {

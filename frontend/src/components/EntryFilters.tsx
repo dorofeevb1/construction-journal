@@ -13,8 +13,18 @@ export function EntryFiltersBar({ filters, onChange, onApply }: EntryFiltersProp
 
   return (
     <section className="card filters-card">
-      <h2>Отбор по дате</h2>
+      <h2>Отбор и поиск</h2>
       <div className="filters-row">
+        <label className="field field-search">
+          <span>Поиск</span>
+          <input
+            type="search"
+            data-testid="filter-search"
+            placeholder="ФИО или вид работ"
+            value={filters.q}
+            onChange={(e) => update('q', e.target.value)}
+          />
+        </label>
         <label className="field">
           <span>С</span>
           <input

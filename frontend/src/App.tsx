@@ -6,10 +6,12 @@ import {
   fetchWorkTypes,
   updateEntry,
 } from './api/client';
+import { ConfirmModal } from './components/ConfirmModal';
 import { EntryFiltersBar } from './components/EntryFilters';
 import { EntryForm } from './components/EntryForm';
 import { EntryTable } from './components/EntryTable';
 import type { EntryFilters, EntryFormData, FieldErrors, JournalEntry, WorkType } from './types';
+import { formatDisplayDate } from './utils/date';
 import { mapApiFieldErrors, validateEntryForm } from './validation';
 
 function emptyForm(): EntryFormData {
@@ -22,7 +24,7 @@ function emptyForm(): EntryFormData {
   };
 }
 
-const defaultFilters: EntryFilters = { dateFrom: '', dateTo: '', sort: 'desc' };
+const defaultFilters: EntryFilters = { dateFrom: '', dateTo: '', sort: 'desc', q: '' };
 
 export default function App() {
   const [workTypes, setWorkTypes] = useState<WorkType[]>([]);
@@ -34,7 +36,9 @@ export default function App() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [bannerError, setBannerError] = useState<string | null>(null);
+  const [entryToDelete, setEntryToDelete] = useState<JournalEntry | null>(null);
 
   const loadEntries = useCallback(async (activeFilters: EntryFilters) => {
     setLoading(true);
@@ -101,16 +105,29 @@ export default function App() {
     }
   };
 
-  const handleDelete = async (entry: JournalEntry) => {
-    if (!window.confirm(`Убрать запись от ${entry.workDate} (${entry.workTypeName})?`)) return;
+  const handleDeleteRequest = (entry: JournalEntry) => {
+    setEntryToDelete(entry);
+  };
 
+  const handleDeleteCancel = () => {
+    if (!deleting) setEntryToDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!entryToDelete) return;
+
+    setDeleting(true);
     setBannerError(null);
+    const id = entryToDelete.id;
     try {
-      await deleteEntry(entry.id);
-      if (editingId === entry.id) resetForm();
+      await deleteEntry(id);
+      setEntryToDelete(null);
+      if (editingId === id) resetForm();
       await loadEntries(appliedFilters);
     } catch (e) {
       setBannerError(e instanceof Error ? e.message : 'Не удалось удалить');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -148,10 +165,21 @@ export default function App() {
         entries={entries}
         loading={loading}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={handleDeleteRequest}
       />
 
       <p className="page-footer">журнал работ · учёт на объекте</p>
+
+      {entryToDelete && (
+        <ConfirmModal
+          title="Удалить запись?"
+          message={`Запись от ${formatDisplayDate(entryToDelete.workDate)} — «${entryToDelete.workTypeName}», ${entryToDelete.volume} ${entryToDelete.unit}, ${entryToDelete.workerName}. Это действие нельзя отменить.`}
+          confirmLabel={deleting ? 'Удаляю…' : 'Удалить'}
+          busy={deleting}
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+        />
+      )}
     </div>
   );
 }

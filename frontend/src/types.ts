@@ -25,6 +25,7 @@ export interface EntryFilters {
   dateFrom: string;
   dateTo: string;
   sort: 'asc' | 'desc';
+  q: string;
 }
 
 export type FieldErrors = Partial<Record<keyof EntryFormData, string>>;

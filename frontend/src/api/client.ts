@@ -33,6 +33,7 @@ export function fetchEntries(filters: EntryFilters): Promise<JournalEntry[]> {
   const params = new URLSearchParams();
   if (filters.dateFrom) params.set('dateFrom', filters.dateFrom);
   if (filters.dateTo) params.set('dateTo', filters.dateTo);
+  if (filters.q.trim()) params.set('q', filters.q.trim());
   params.set('sort', filters.sort);
   const query = params.toString();
   return api<JournalEntry[]>(`/api/entries${query ? `?${query}` : ''}`);
